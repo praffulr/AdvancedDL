@@ -1,0 +1,52 @@
+2)
+a)
+Stage 1 Input:
+(2048/4)*(2048/4)*48  (after patch partition)
+= 512*512*48 (Input Stage 1)
+=> 512*512*96 (after linear embedding)
+(input shape for Stage 2)
+
+Patch Merging:
+(512/8)*(512/8)*(4*96)
+=64*64*384 (before linear projection)
+=>64*64*192 (after projection)
+(input swin block in Stage 2)
+(input shape for Stage 3)
+
+Second Patch Merging:
+(64/8)*(64/8)*(2*192)
+=8*8*384 (shape after second patch merging)
+(input swin block in Stage 3)
+
+b)
+64*64*192 (shape entering swin block in Stage 2)
+(64/8)*(64/8) 
+= 64 windows with shape 8*8*192 (feature patches)
+
+c)
+FLOPs MSA term: 2(64*64)²192 = 6442450944
+FLOPs W-MSA term: 2*64*64*64*192 = 100663296
+(603979776+6442450944)/(603979776+100663296)=10 (Speedup)
+
+4)
+a)
+In Vector Attention, the interaction φ(xi)−ψ(xj)+δ is a vector in feature space,
+which is processed by an MLP and used to modulate the value vector elementwise. 
+This preserves more information than a scalar score and allows the model to capture richer,
+feature-wise relationships and geometric structure between points i and j.
+
+b)
+Including δ in the value path helps the network preserve geometric context during aggregation.
+If positional encoding were included only in the attention weights, 
+the model could learn where to attend, but the aggregated feature content 
+would still come only from the raw value features.
+
+c)
+In standard dot-product attention, 
+each neighbor contributes its value vector multiplied by one scalar weight, 
+so all feature channels are scaled equally. 
+Here, each channel of the value vector is modulated separately by the corresponding channel of the attention vector.
+As a result, the information flow becomes more expressive: one channel may carry geometric detail, 
+another may carry semantic context.
+This gives finer-grained control over how information is propagated from each point.
+
